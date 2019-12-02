@@ -1,0 +1,85 @@
+,District,Count,Type
+0,A1,4341,Violent Crime
+1,A15,379,Violent Crime
+2,A7,727,Violent Crime
+3,B2,7009,Violent Crime
+4,B3,5022,Violent Crime
+5,C11,4435,Violent Crime
+6,C6,1912,Violent Crime
+7,D14,1546,Violent Crime
+8,D4,4494,Violent Crime
+9,E13,2114,Violent Crime
+10,E18,1061,Violent Crime
+11,E5,1042,Violent Crime
+12,A1,11129,Theft Crime
+13,A15,727,Theft Crime
+14,A7,1261,Theft Crime
+15,B2,9572,Theft Crime
+16,B3,5972,Theft Crime
+17,C11,6416,Theft Crime
+18,C6,4472,Theft Crime
+19,D14,3483,Theft Crime
+20,D4,15969,Theft Crime
+21,E13,4681,Theft Crime
+22,E18,1895,Theft Crime
+23,E5,1792,Theft Crime
+24,A1,3614,On Road Crime
+25,A15,384,On Road Crime
+26,A7,710,On Road Crime
+27,B2,6409,On Road Crime
+28,B3,4487,On Road Crime
+29,C11,5001,On Road Crime
+30,C6,2633,On Road Crime
+31,D14,2422,On Road Crime
+32,D4,3955,On Road Crime
+33,E13,2708,On Road Crime
+34,E18,1642,On Road Crime
+35,E5,1690,On Road Crime
+36,A1,12408,Other Definite Crimes
+37,A15,1367,Other Definite Crimes
+38,A7,2331,Other Definite Crimes
+39,B2,20099,Other Definite Crimes
+40,B3,13988,Other Definite Crimes
+41,C11,13529,Other Definite Crimes
+42,C6,5923,Other Definite Crimes
+43,D14,4531,Other Definite Crimes
+44,D4,12803,Other Definite Crimes
+45,E13,7050,Other Definite Crimes
+46,E18,3346,Other Definite Crimes
+47,E5,3825,Other Definite Crimes
+48,A1,15873,Other Non-Definite Crimes
+49,A15,1864,Other Non-Definite Crimes
+50,A7,3021,Other Non-Definite Crimes
+51,B2,26508,Other Non-Definite Crimes
+52,B3,19455,Other Non-Definite Crimes
+53,C11,18118,Other Non-Definite Crimes
+54,C6,8059,Other Non-Definite Crimes
+55,D14,6592,Other Non-Definite Crimes
+56,D4,17076,Other Non-Definite Crimes
+57,E13,9500,Other Non-Definite Crimes
+58,E18,4763,Other Non-Definite Crimes
+59,E5,5289,Other Non-Definite Crimes
+60,A1,32898,All Definite Crimes
+61,A15,3069,All Definite Crimes
+62,A7,5388,All Definite Crimes
+63,B2,44267,All Definite Crimes
+64,B3,30196,All Definite Crimes
+65,C11,30627,All Definite Crimes
+66,C6,16458,All Definite Crimes
+67,D14,13134,All Definite Crimes
+68,D4,39408,All Definite Crimes
+69,E13,17647,All Definite Crimes
+70,E18,8178,All Definite Crimes
+71,E5,8626,All Definite Crimes
+72,A1,36363,All Non-Definite Crimes
+73,A15,3566,All Non-Definite Crimes
+74,A7,6078,All Non-Definite Crimes
+75,B2,50676,All Non-Definite Crimes
+76,B3,35663,All Non-Definite Crimes
+77,C11,35216,All Non-Definite Crimes
+78,C6,18594,All Non-Definite Crimes
+79,D14,15195,All Non-Definite Crimes
+80,D4,43681,All Non-Definite Crimes
+81,E13,20097,All Non-Definite Crimes
+82,E18,9595,All Non-Definite Crimes
+83,E5,10090,All Non-Definite Crimes
