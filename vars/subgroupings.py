@@ -3,12 +3,6 @@ import geopandas as gpd
 from shapely.geometry import Point
 
 def subgroup_gen():
-    # get + format crime data
-    crime_data = pd.read_csv("../data/boston_crime.csv")
-    crs = {"init": "epsg:4326"}
-    geometry = [Point(xy) for xy in zip(crime_data["Long"], crime_data["Lat"])]
-    crime_data = gpd.GeoDataFrame(crime_data, crs=crs, geometry=geometry)
-
     # clean crime data of crimes to not include
     non_crimes = ["Medical Assistance", "Fire Related Reports", "Biological Threat"]
     recoveries = [
@@ -30,7 +24,6 @@ def subgroup_gen():
         "Aircraft",
     ]
     no_include = non_crimes + recoveries + interpersonal + geo_specific
-    crime_data = crime_data[~crime_data["OFFENSE_CODE_GROUP"].isin(no_include)]
 
     # filter for subgroupings
     car_parking_incidents = [
@@ -132,4 +125,3 @@ def subgroup_gen():
     return crime_subgroupings
 
 subgroups = subgroup_gen()
-print(subgroups)
