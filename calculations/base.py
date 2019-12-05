@@ -23,7 +23,7 @@ class DistCalc(BaseCalc):
     def __init__(self, feature_df, binned_crime_df):
         BaseCalc.__init__(self, feature_df, binned_crime_df)
 
-    def calculation(self, subgroup_list):
+    def calculation(self, subgroup_list, feature_function):
         def haversine(coord_tuple):
             (lon1, lat1, lon2, lat2) = coord_tuple
             lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
@@ -34,36 +34,32 @@ class DistCalc(BaseCalc):
             r = 3956  # Radius of earth in miles. Use 6371 for kilometers
             return c * r
 
+        bin_ids = pd.unique(self.binned_crime_df.bin_id)
+        bin_distances = {}
+        for bin_id in bin_ids:
+            cent_coords = wkt.loads(
+                self.binned_crime_df.loc[self.binned_crime_df["bin_id"] == bin_id]
+                .iloc[0]
+                .centroid
+            )
+            cent_coords = (cent_coords.x, cent_coords.y)
+            distances = []
+            for point in self.feature_df.geometry:
+                point = wkt.loads(point)
+                hosp_coords = (point.x, point.y)
+                distances.append(haversine(cent_coords + hosp_coords))
+            bin_distances[bin_id] = feature_function(distances)
+
+        self.binned_crime_df["feature"] = self.binned_crime_df.apply(
+            lambda row: bin_distances[row["bin_id"]], axis=1
+        )
+
         results = []
         for subgroup in subgroup_list:
             crimes = subgroups[subgroup]
             filtered_df = self.binned_crime_df[
                 self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
             ]
-            bin_ids = pd.unique(self.binned_crime_df.bin_id)
-            bin_distances = {}
-            for bin_id in bin_ids:
-                cent_coords = (
-                    filtered_df.loc[filtered_df["bin_id"] == bin_id].iloc[0].centroid
-                )
-
-                distances = []
-                for point in self.feature_df.geometry:
-                    print(point)
-                    point = wkt.loads(point)
-                    print(point)
-                    print("------")
-                    hospital_coords = (
-                        point.x + point.geometry.y
-                    )
-                    distances.append(haversine(cent_coords + hospital_coords))
-                print(distances)
-                raise SystemError(0)
-                feature_value = min(
-                    [dist for dist in distances]
-                )
-                filtered_df.at(bin_id)[feature_name] = feature_value
-            filtered_df.groupby("bin_id").count()
             results.append(filtered_df)
         return results
 

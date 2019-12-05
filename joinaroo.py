@@ -3,7 +3,6 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
-import fiona
 
 
 def main():
@@ -52,8 +51,7 @@ def main():
     ]
     bins_to_crime = gpd.sjoin(bin_data, crime_data, op="contains")
     bins_to_crime["centroid"] = bins_to_crime.centroid
-    print(bins_to_crime.dtypes)
-    bins_to_crime.to_file("crimes_in_bins.shp", driver="ESRI Shapefile")
+    bins_to_crime.to_csv("crimes_in_bins.csv")
 
 
 if __name__ == "__main__":
