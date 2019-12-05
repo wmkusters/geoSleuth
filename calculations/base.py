@@ -108,20 +108,25 @@ class DistCalc(BaseCalc):
 
 
 def CountCalc(BaseCalc):
-    def __init__():
-        pass
+    """
+    Base class for building dataframes mapping
+    bins to count of discrete instances of 
+    certain features
+    """
 
-    def calculation(self, filename):
-        liquor_data = gpd.read_file(filename)
-        liquor_data["Long"] = liquor_data["Long"].astype(float)
-        liquor_data["Lat"] = liquor_data["Lat"].astype(float)
-        liquor_geometry = [
-            Point(xy) for xy in zip(liquor_data["Long"], liquor_data["Lat"])
-        ]
-        liquor_data = gpd.GeoDataFrame(liquor_data, crs=crs, geometry=liquor_geometry)
+    def __init__(self, feature_df, binned_crime_df):
+        """
+        parameters:
+            feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
+            binned_crime_df: preproccessed binned crime pandas dataframe 
+        returns:
+            class instance
 
-        crime_bins = gpd.read_file("")
-        result = pd.Dataframe()
-        for subgroup in subgroups:
-            for bin_id in crime_bins.OBJECTID.unique:
-                num_licenses = liquor_data[liquor_data.within(crime_bins)].count()
+        Pandas dataframes are used as data is read from a .csv, not from a .shp, so no
+        geometry column is set.
+        """
+        BaseCalc.__init__(self, feature_df, binned_crime_df)
+
+    def calculation(self, subgroup_list):
+        """
+        """
