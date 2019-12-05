@@ -20,11 +20,47 @@ class BaseCalc:
 
 
 class DistCalc(BaseCalc):
+    """
+    Base class for building dataframes mapping
+    bins to distances away from certain features
+    """
+
     def __init__(self, feature_df, binned_crime_df):
+        """
+        parameters:
+            feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
+            binned_crime_df: preproccessed binned crime pandas dataframe 
+        returns:
+            class instance
+
+        Pandas dataframes are used as data is read from a .csv, not from a .shp, so no
+        geometry column is set.
+        """
         BaseCalc.__init__(self, feature_df, binned_crime_df)
 
-    def calculation(self, subgroup_list):
+    def calculation(self, subgroup_list, feature_function):
+        """
+        parameters:
+            subgroup list: list of subgroups to independently calculate/return
+            feature function: function used on feature for calculation
+        returns:
+            list of resulting dataframes
+
+         This method performs a distance feature calculation, calculating distances 
+         of each bin to some feature with a location, i.e. bins to hospitals. With 
+         that list of distances, it then maps each bin to a function performed over 
+         those lists (feature_function parameter). An example function would be
+         summing the inverse squares of the distances from bin centroid to each feature.
+        """
+
         def haversine(coord_tuple):
+            """
+            parameters:
+                coord_tuple: string, contains (coord 1) and (coord 2) in tuple format
+                             concatenated together
+            returns:
+                haversine distance between coord 1 and coord 2
+            """
             (lon1, lat1, lon2, lat2) = coord_tuple
             lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
             dlon = lon2 - lon1
@@ -34,55 +70,63 @@ class DistCalc(BaseCalc):
             r = 3956  # Radius of earth in miles. Use 6371 for kilometers
             return c * r
 
+        # Get list of unique bin ids for distance mapping
+        bin_ids = pd.unique(self.binned_crime_df.bin_id)
+
+        # Iterate through unique bins, calculating list of distances
+        # from that bin's centroid to each feature's coordinates,
+        # map bin_id to variable function of that distance list
+        bin_distances = {}
+        for bin_id in bin_ids:
+            cent_coords = wkt.loads(
+                self.binned_crime_df.loc[self.binned_crime_df["bin_id"] == bin_id]
+                .iloc[0]
+                .centroid
+            )
+            cent_coords = (cent_coords.x, cent_coords.y)
+            distances = []
+            for point in self.feature_df.geometry:
+                point = wkt.loads(point)
+                feat_coords = (point.x, point.y)
+                distances.append(haversine(cent_coords + feat_coords))
+            bin_distances[bin_id] = feature_function(distances)
+
+        # Add the result to the dataframe as a column
+        self.binned_crime_df["feature"] = self.binned_crime_df.apply(
+            lambda row: bin_distances[row["bin_id"]], axis=1
+        )
+
+        # Return results filtered for each subgroup of crime
         results = []
         for subgroup in subgroup_list:
             crimes = subgroups[subgroup]
             filtered_df = self.binned_crime_df[
                 self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
             ]
-            bin_ids = pd.unique(self.binned_crime_df.bin_id)
-            bin_distances = {}
-            for bin_id in bin_ids:
-                cent_coords = (
-                    filtered_df.loc[filtered_df["bin_id"] == bin_id].iloc[0].centroid
-                )
-
-                distances = []
-                for point in self.feature_df.geometry:
-                    print(point)
-                    point = wkt.loads(point)
-                    print(point)
-                    print("------")
-                    hospital_coords = (
-                        point.x + point.geometry.y
-                    )
-                    distances.append(haversine(cent_coords + hospital_coords))
-                print(distances)
-                raise SystemError(0)
-                feature_value = min(
-                    [dist for dist in distances]
-                )
-                filtered_df.at(bin_id)[feature_name] = feature_value
-            filtered_df.groupby("bin_id").count()
             results.append(filtered_df)
         return results
 
 
 def CountCalc(BaseCalc):
-    def __init__():
-        pass
+    """
+    Base class for building dataframes mapping
+    bins to count of discrete instances of 
+    certain features
+    """
 
-    def calculation(self, filename):
-        liquor_data = gpd.read_file(filename)
-        liquor_data["Long"] = liquor_data["Long"].astype(float)
-        liquor_data["Lat"] = liquor_data["Lat"].astype(float)
-        liquor_geometry = [
-            Point(xy) for xy in zip(liquor_data["Long"], liquor_data["Lat"])
-        ]
-        liquor_data = gpd.GeoDataFrame(liquor_data, crs=crs, geometry=liquor_geometry)
+    def __init__(self, feature_df, binned_crime_df):
+        """
+        parameters:
+            feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
+            binned_crime_df: preproccessed binned crime pandas dataframe 
+        returns:
+            class instance
 
-        crime_bins = gpd.read_file("")
-        result = pd.Dataframe()
-        for subgroup in subgroups:
-            for bin_id in crime_bins.OBJECTID.unique:
-                num_licenses = liquor_data[liquor_data.within(crime_bins)].count()
+        Pandas dataframes are used as data is read from a .csv, not from a .shp, so no
+        geometry column is set.
+        """
+        BaseCalc.__init__(self, feature_df, binned_crime_df)
+
+    def calculation(self, subgroup_list):
+        """
+        """
