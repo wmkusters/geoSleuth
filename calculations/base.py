@@ -38,7 +38,7 @@ class DistCalc(BaseCalc):
         """
         BaseCalc.__init__(self, feature_df, binned_crime_df)
 
-    def calculation(self, subgroup_list, feature_function):
+    def calculation(self, subgroup_list, feature_function=min):
         """
         parameters:
             subgroup list: list of subgroups to independently calculate/return
@@ -78,7 +78,7 @@ class DistCalc(BaseCalc):
         # map bin_id to variable function of that distance list
         bin_distances = {}
         for bin_id in bin_ids:
-            cent_coords = wkt.loads(
+            cent_coords = wkt.loads(  # Using wkt.loads() as points are stored as strings
                 self.binned_crime_df.loc[self.binned_crime_df["bin_id"] == bin_id]
                 .iloc[0]
                 .centroid
@@ -107,7 +107,7 @@ class DistCalc(BaseCalc):
         return results
 
 
-def CountCalc(BaseCalc):
+class DiscreteCalc(BaseCalc):
     """
     Base class for building dataframes mapping
     bins to count of discrete instances of 
@@ -122,11 +122,46 @@ def CountCalc(BaseCalc):
         returns:
             class instance
 
-        Pandas dataframes are used as data is read from a .csv, not from a .shp, so no
+        Pandas dataframes are used, as data is read from a .csv, not from a .shp, so no
         geometry column is set.
         """
         BaseCalc.__init__(self, feature_df, binned_crime_df)
 
     def calculation(self, subgroup_list):
         """
+        parameters:
+            subgroup_list: list of subgroups to return data for
+        returns:
+            list of dataframes containing bins/crimes filtered into subgroups, with feature
+            values appended as the last column
+
+        This method
         """
+        bins = (
+            self.binned_crime_df.groupby("bin_id")["geometry"]
+            .apply(lambda poly: wkt.loads(np.unique(poly)[0]))
+            .reset_index()
+        )
+        crs = {"init": "epsg:4326"}
+        bins = gpd.GeoDataFrame(bins, crs=crs, geometry=bins.geometry)
+
+        feature_calculation = gpd.sjoin(bins, self.feature_df, op="contains")
+        feature_calculation = (
+            feature_calculation.groupby("bin_id").count().reset_index()
+        )
+        feature_calculation = feature_calculation.rename(columns={"LICENSENO": "feature"})
+
+        self.binned_crime_df = pd.merge(
+            self.binned_crime_df,
+            feature_calculation[["bin_id", "feature"]],
+            on="bin_id",
+        )
+
+        results = []
+        for subgroup in subgroup_list:
+            crimes = subgroups[subgroup]
+            filtered_df = self.binned_crime_df[
+                self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
+            ]
+            results.append(filtered_df)
+        return results
