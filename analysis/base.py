@@ -19,38 +19,131 @@ class BaseAnalyzer:
     Top level analyzer, used for inheritance.
     """
 
-    def __init__(self, result_df):
+    def __init__(self, filename):
         """
         Prepare df for analysis (train test split)
-        """
-        self.result_df = result_df
 
-    def train_test_split(self, train=.7, test=.3):
+        parameters:
+            filename: location of csv file to analyze
+
         """
-        """
-        pass
+
+        self.result_df = pd.read_csv(filename)
+        # create dataframe of form | bin_id | feature | num_crimes |
+        features = self.result_df.groupby('bin_id').first()['feature']
+        crimes = self.result_df.groupby('bin_id').count()['feature']
+        self.result_df = pd.merge(features, crimes, on='bin_id').reset_index().rename(columns={'feature_x':'feature', 'feature_y':'num_crimes'})
+
+        # filter to bins with nonzero crimes
+        self.result_df = self.result_df[self.result_df['num_crimes'] > 0]
+
+        # split train/test
+        self.train, self.test = train_test_split(self.result_df, test_size=0.1, random_state=42)
+        # train = train.sort_values('feature')
+        # test = test.sort_values('feature')
+        self.train_x = np.array(train['feature']).reshape(-1, 1)
+        self.train_y = np.array(train['num_crimes'])
+        self.test_x = np.array(test['feature']).reshape(-1, 1)
+        self.test_y = np.array(test['num_crimes'])
+
 
     def linear_model(self, plot=False):
-        pass
+        model = LinearRegression()
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Linear Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
 
     def quadratic_model(self, plot=False):
-        pass
-    def plot()
+        model = make_pipeline(PolynomialFeatures(2), LinearRegression())
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Quadratic Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
+    def cubic_model(self, plot=False):
+        model = make_pipeline(PolynomialFeatures(3), LinearRegression())
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Cubic Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
+    def quartic_model(self, plot=False):
+        model = make_pipeline(PolynomialFeatures(4), LinearRegression())
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Quartic Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
+    def gaussian_model(self, plot=False):
+        kernel = DotProduct() + WhiteKernel()
+        model = GaussianProcessRegressor(kernel=kernel, random_state=42)
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Gaussian Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
+    def random_forest_model(self, plot=False):
+        model = RandomForestRegressor(n_estimators = 100, max_depth = None, random_state=42)
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("Random Forest Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
+    def xgboost_model(self, plot=False):
+        model = xgb.XGBRegressor(objective ='reg:squarederror', colsample_bytree = 0.3, learning_rate = 0.1, max_depth = 5, alpha = 10, n_estimators = 10)
+        model.fit(self.train_x, self.train_y)
+        y_pred = model.predict(self.test_x)
+        r2 = r2_score(self.test_y, y_pred)
+        print("XGBoost Regression R^2 Score: " + str(r2))
+
+        if plot:
+            pass
+
 
 
 class DiscreteAnalyzer(BaseAnalyzer):
     def __init__(self, result_df):
         BaseAnalyzer.__init__(self, result_df)
 
-    def convolve_bins(self, mapping, convolution):
+        # average bins
+        train_avg = self.train.groupby('feature')[['num_crimes']].mean().reset_index()
+        test_avg = self.test.groupby('feature')[['num_crimes']].mean().reset_index()
+
+        # this overrides the generic train/test sets generated in BaseAnalyzer
+        self.train_x = np.array(train_avg['feature']).reshape(-1, 1)
+        self.train_y = np.array(train_avg['num_crimes'])
+        self.test_x = np.array(test_avg['feature']).reshape(-1, 1)
+        self.test_y = np.array(test_avg['num_crimes'])
+
+
+    def convolve_bins(self, convolution):
         """
         Recompute bin feature values via a convolution filter.
         """
+        pass
 
     def box_plotter(self):
         """
         Plot box plots along each value of the discrete variable
         """
+        pass
 
-class LiquorAnalyzer(DiscreteAnalyzer):
-    def __init
