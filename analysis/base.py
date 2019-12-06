@@ -25,18 +25,24 @@ class BaseAnalyzer:
         """
         self.result_df = result_df
 
+    def train_test_split(self, train=.7, test=.3):
+        """
+        """
+        pass
+
     def linear_model(self, plot=False):
         pass
 
     def quadratic_model(self, plot=False):
         pass
+    def plot()
 
 
 class DiscreteAnalyzer(BaseAnalyzer):
     def __init__(self, result_df):
         BaseAnalyzer.__init__(self, result_df)
 
-    def convolve_bins(self, convolution):
+    def convolve_bins(self, mapping, convolution):
         """
         Recompute bin feature values via a convolution filter.
         """
@@ -45,3 +51,6 @@ class DiscreteAnalyzer(BaseAnalyzer):
         """
         Plot box plots along each value of the discrete variable
         """
+
+class LiquorAnalyzer(DiscreteAnalyzer):
+    def __init
