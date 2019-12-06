@@ -29,7 +29,7 @@ class DistCalc(BaseCalc):
         """
         parameters:
             feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
-            binned_crime_df: preproccessed binned crime pandas dataframe 
+            binned_crime_df: preprocessed binned crime pandas dataframe 
         returns:
             class instance
 
