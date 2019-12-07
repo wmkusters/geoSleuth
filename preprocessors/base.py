@@ -5,6 +5,17 @@ from shapely import wkt
 import numpy as np
 
 def wkt_pt_conversion(pt_string):
+    """
+    parameters:
+        pt_string: string describing a point to be converted
+                   to well-known text format currently just
+                   converts points enclosed in () with a comma
+                   and need to have the Lat/Long parsed into
+                   x/y.
+    returns
+        Null value in the case of a point == (0, 0), or the
+        shapely POINT object of the wkt point.
+    """
     pt_string = pt_string.replace("(", "")
     pt_string = pt_string.replace(")", "")
     pt_string = pt_string.replace(" ", "")

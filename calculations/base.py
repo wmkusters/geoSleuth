@@ -51,6 +51,8 @@ class DistCalc(BaseCalc):
          that list of distances, it then maps each bin to a function performed over 
          those lists (feature_function parameter). An example function would be
          summing the inverse squares of the distances from bin centroid to each feature.
+         The resulting dataframes would be composed of the same rows as self.binned_crime_df,
+         with a new final column that is the value of a feature for the bin of that row.
         """
 
         def haversine(coord_tuple):
@@ -111,7 +113,7 @@ class DiscreteCalc(BaseCalc):
     """
     Base class for building dataframes mapping
     bins to count of discrete instances of 
-    certain features
+    certain features within a bin
     """
 
     def __init__(self, feature_df, binned_crime_df):
@@ -132,11 +134,15 @@ class DiscreteCalc(BaseCalc):
         parameters:
             subgroup_list: list of subgroups to return data for
         returns:
-            list of dataframes containing bins/crimes filtered into subgroups, with feature
-            values appended as the last column
+            list of dataframes containing bins/crimes, one for each passed
+            subgroup, with feature values appended as the last column
 
-        This method
+        This method returns a list of dataframes much the same as the DistCalc
+        class. Based on a series of table operations, a column is added to the
+        end of binned crime dataframe labeled "feature" which stores the value
+        for the calculated feature for that row's bin, the same as DistCalc.
         """
+        # Compose gdf with just unique bins and their geometries for joining
         bins = (
             self.binned_crime_df.groupby("bin_id")["geometry"]
             .apply(lambda poly: wkt.loads(np.unique(poly)[0]))
@@ -145,18 +151,24 @@ class DiscreteCalc(BaseCalc):
         crs = {"init": "epsg:4326"}
         bins = gpd.GeoDataFrame(bins, crs=crs, geometry=bins.geometry)
 
+        # Join the features onto the bins, based on the feature (i.e. a liquor
+        # license) being inside of the bin
         feature_calculation = gpd.sjoin(bins, self.feature_df, op="contains")
         feature_calculation = (
             feature_calculation.groupby("bin_id").count().reset_index()
         )
-        feature_calculation = feature_calculation.rename(columns={"LICENSENO": "feature"})
+        feature_calculation = feature_calculation.rename(
+            columns={"LICENSENO": "feature"}
+        )
 
+        # Join the features onto the original binned crime dataframe
         self.binned_crime_df = pd.merge(
             self.binned_crime_df,
             feature_calculation[["bin_id", "feature"]],
             on="bin_id",
         )
 
+        # Filter by subgroup, return filtered results
         results = []
         for subgroup in subgroup_list:
             crimes = subgroups[subgroup]
