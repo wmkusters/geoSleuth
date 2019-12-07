@@ -59,7 +59,7 @@ class BaseAnalyzer:
         print("Linear Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Linear', y_pred, r2)
 
     def quadratic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(2), LinearRegression())
@@ -69,7 +69,7 @@ class BaseAnalyzer:
         print("Quadratic Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Quadratic', y_pred, r2)
 
     def cubic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(3), LinearRegression())
@@ -79,7 +79,7 @@ class BaseAnalyzer:
         print("Cubic Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Cubic', y_pred, r2)
 
     def quartic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(4), LinearRegression())
@@ -89,7 +89,7 @@ class BaseAnalyzer:
         print("Quartic Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Quartic', y_pred, r2)
 
     def gaussian_model(self, plot=False):
         kernel = DotProduct() + WhiteKernel()
@@ -100,7 +100,7 @@ class BaseAnalyzer:
         print("Gaussian Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Gaussian', y_pred, r2)
 
     def random_forest_model(self, plot=False):
         model = RandomForestRegressor(n_estimators=100, max_depth=None, random_state=42)
@@ -110,7 +110,7 @@ class BaseAnalyzer:
         print("Random Forest Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('Random Forest', y_pred, r2)
 
     def xgboost_model(self, plot=False):
         model = xgb.XGBRegressor(
@@ -127,10 +127,19 @@ class BaseAnalyzer:
         print("XGBoost Regression R^2 Score: " + str(r2))
 
         if plot:
-            pass
+            self.plot_result('XGBoost', y_pred, r2)
+
+    def plot_result(self, model, y_pred, r2):
+        plt.scatter(self.train_x, self.train_y)
+        plt.scatter(self.test_x, y_pred, color='r')
+        plt.title('{} Regression Prediction (R^2: {})'.format(model, str(round(r2, 2))))
+        plt.show()
 
 
 class DiscreteAnalyzer(BaseAnalyzer):
+    """
+    Analyzer for discrete features
+    """
     def __init__(self, result_df):
         BaseAnalyzer.__init__(self, result_df)
 
