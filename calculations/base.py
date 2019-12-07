@@ -157,8 +157,14 @@ class DiscreteCalc(BaseCalc):
         feature_calculation = (
             feature_calculation.groupby("bin_id").count().reset_index()
         )
+
+        # Rename feature column to feature
+        common_cols = {"bin_id", "geometry", "index_right"}
+        for col in feature_calculation.columns:
+            if col not in common_cols:
+                feature_col = col
         feature_calculation = feature_calculation.rename(
-            columns={"LICENSENO": "feature"}
+            columns={feature_col: "feature"}
         )
 
         # Join the features onto the original binned crime dataframe
@@ -171,7 +177,7 @@ class DiscreteCalc(BaseCalc):
         # Filter by subgroup, return filtered results
         results = []
         for subgroup in subgroup_list:
-            crimes = subgroups[subgroup]
+            crimes = subgroups[subgroup] # Add try catch for not using correct data
             filtered_df = self.binned_crime_df[
                 self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
             ]
