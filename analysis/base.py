@@ -180,4 +180,5 @@ class DiscreteAnalyzer(BaseAnalyzer):
         """
         Plot box plots along each value of the discrete variable
         """
-        pass
+        self.result_df.boxplot('num_crimes', by='feature')
+        plt.show()
