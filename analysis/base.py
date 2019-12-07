@@ -28,14 +28,17 @@ class BaseAnalyzer:
         """
 
         self.result_df = pd.read_csv(filename)
-        # create dataframe of form | bin_id | feature | num_crimes |
+        # @bill: use this to generate dataframe of form | bin_id | feature | num_crimes | area_proportion |
+        # and save to csv
+        ###################
         features = self.result_df.groupby("bin_id").first()["feature"]
         crimes = self.result_df.groupby("bin_id").count()["feature"]
-        self.result_df = (
-            pd.merge(features, crimes, on="bin_id")
-            .reset_index()
-            .rename(columns={"feature_x": "feature", "feature_y": "num_crimes"})
-        )
+        area_proportion = self.result_df.groupby("bin_id").first()["area_proportion"]
+        self.result_df = pd.merge(features, crimes, on="bin_id")
+                         .reset_index()
+                         .rename(columns={"feature_x": "feature", "feature_y": "num_crimes"})
+        self.result_df = pd.merge(self.result_df, area_proportion, on="bin_id").reset_index()
+        ###################
 
         # filter to bins with nonzero crimes
         self.result_df = self.result_df[self.result_df["num_crimes"] > 0]
@@ -144,14 +147,14 @@ class DiscreteAnalyzer(BaseAnalyzer):
         BaseAnalyzer.__init__(self, result_df)
 
         # average bins
-        train_avg = self.train.groupby("feature")[["num_crimes"]].mean().reset_index()
-        test_avg = self.test.groupby("feature")[["num_crimes"]].mean().reset_index()
+        # train_avg = self.train.groupby("feature")[["num_crimes"]].mean().reset_index()
+        # test_avg = self.test.groupby("feature")[["num_crimes"]].mean().reset_index()
 
-        # this overrides the generic train/test sets generated in BaseAnalyzer
-        self.train_x = np.array(train_avg["feature"]).reshape(-1, 1)
-        self.train_y = np.array(train_avg["num_crimes"])
-        self.test_x = np.array(test_avg["feature"]).reshape(-1, 1)
-        self.test_y = np.array(test_avg["num_crimes"])
+        # # this overrides the generic train/test sets generated in BaseAnalyzer
+        # self.train_x = np.array(train_avg["feature"]).reshape(-1, 1)
+        # self.train_y = np.array(train_avg["num_crimes"])
+        # self.test_x = np.array(test_avg["feature"]).reshape(-1, 1)
+        # self.test_y = np.array(test_avg["num_crimes"])
 
     def convolve_bins(self, convolution):
         """
