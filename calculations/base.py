@@ -50,7 +50,7 @@ class BaseCalc:
                 result_dir + subgroup.replace(" ", "") + ".csv"
             )
 
-    def finalize(self, feat_result_df, subgroup_list, group, to_file):
+    def finalize(self, feat_result_df, subgroup_list, group, to_file, convolved=False):
         results = {}
         for subgroup in subgroup_list:
             crimes = subgroups[subgroup]  # Add try catch for not using correct data
@@ -66,7 +66,7 @@ class BaseCalc:
             else:
                 results[subgroup] = subgroup_df
 
-        if to_file:
+        if to_file and not convolved:
             self.write_results(results)
 
         return results
@@ -176,7 +176,7 @@ class DiscreteCalc(BaseCalc):
         """
         BaseCalc.__init__(self, feature_df, binned_crime_df, feature_name)
 
-    def convolve(self, dataframe, func):
+    def convolve(self, dataframe):
         """
         parameters: 
             convolution: the operation to be applied during convolution, i.e.
@@ -192,23 +192,18 @@ class DiscreteCalc(BaseCalc):
         adj_feats = {}
         new_vals = {}
         for bin_id in pd.unique(dataframe.bin_id):
-            print(adj_map[bin_id])
-            print(dataframe.loc[dataframe["bin_id"].isin(adj_map[bin_id])][["feature"]])
-            raise SystemError(0)
-            new_vals[bin_id] = dataframe.loc[dataframe["bin_id"].isin(adj_map[bin_id])][
-                ["feature"]
-            ].mean()
-        print(new_vals)
-        raise SystemError(0)
+            new_vals[bin_id] = (
+                dataframe.loc[dataframe["bin_id"].isin(adj_map[bin_id])][["feature"]]
+                .mean()
+                .iloc[0]
+            )
+        dataframe["feature"] = dataframe.apply(
+            lambda row: new_vals[row["bin_id"]], axis=1
+        )
         return dataframe
 
     def calculation(
-        self,
-        subgroup_list,
-        convolve=False,
-        convolve_func=None,
-        group=False,
-        to_file=False,
+        self, subgroup_list, convolve=False, group=False, to_file=False,
     ):
         """
         parameters:
@@ -222,9 +217,6 @@ class DiscreteCalc(BaseCalc):
         end of binned crime dataframe labeled "feature" which stores the value
         for the calculated feature for that row's bin, the same as DistCalc.
         """
-        if convolve:
-            assert convolve_func is not None
-
         # Compose gdf with just unique bins and their geometries for joining
         bins = (
             self.binned_crime_df.groupby("bin_id")["geometry"]
@@ -268,11 +260,13 @@ class DiscreteCalc(BaseCalc):
         )
 
         if convolve:
-            results = self.finalize(feat_result_df, subgroup_list, group, to_file)
+            results = self.finalize(
+                feat_result_df, subgroup_list, group, to_file, convolved=True
+            )
             for subgroup in results.keys():
-                results[subgroup] = self.convolve(results[subgroup], convolve_func)
-            print(results["Violent Crime"].head())
-            raise SystemError(0)
+                results[subgroup] = self.convolve(results[subgroup])
+            if to_file:
+                self.write_results(results)
         else:
             results = self.finalize(feat_result_df, subgroup_list, group, to_file)
 
