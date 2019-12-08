@@ -66,9 +66,9 @@ def preprocess_entertainment(filename):
 def preprocess_mbta(filename):
     mbta_data = gpd.read_file(filename)
     crs = {"init": "epsg:4326"}
-    mbta_data["X"] = mbta_data["X"].astype(float)
-    mbta_data["Y"] = mbta_data["Y"].astype(float)
-    mbta_geometry = [Point(xy) for xy in zip(mbta_data["X"], mbta_data["Y"])]
+    mbta_data["Long"] = mbta_data["X"].astype(float)
+    mbta_data["Lat"] = mbta_data["Y"].astype(float)
+    mbta_geometry = [Point(xy) for xy in zip(mbta_data["Long"], mbta_data["Lat"])]
     mbta_data = gpd.GeoDataFrame(mbta_data, crs=crs, geometry=mbta_geometry)
     mbta_data = mbta_data.dropna()
     return mbta_data

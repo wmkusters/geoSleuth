@@ -19,26 +19,20 @@ class BaseAnalyzer:
     Top level analyzer, used for inheritance.
     """
 
-    def __init__(self, filename):
+    def __init__(self, dataframe):
         """
         parameters:
-            filename: location of csv file to analyze
+            dataframe: pandas dataframe to analyze. must contain 'bin_id', 'feature', 'num_crimes'
         returns:
             class instance
         """
 
-        self.result_df = pd.read_csv(filename)
-        # @bill: use this to generate dataframe of form | bin_id | feature | num_crimes | area_proportion |
-        # and save to csv
-        ###################
-        features = self.result_df.groupby("bin_id").first()["feature"]
-        crimes = self.result_df.groupby("bin_id").count()["feature"]
-        area_proportion = self.result_df.groupby("bin_id").first()["area_proportion"]
-        self.result_df = pd.merge(features, crimes, on="bin_id")
-                         .reset_index()
-                         .rename(columns={"feature_x": "feature", "feature_y": "num_crimes"})
-        self.result_df = pd.merge(self.result_df, area_proportion, on="bin_id").reset_index()
-        ###################
+        self.result_df = dataframe
+
+        # sanity check
+        assert self.result_df.columns.contains('bin_id')
+        assert self.result_df.columns.contains('feature')
+        assert self.result_df.columns.contains('num_crimes')
 
         # filter to bins with nonzero crimes
         self.result_df = self.result_df[self.result_df["num_crimes"] > 0]

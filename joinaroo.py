@@ -11,6 +11,7 @@ def main():
     census_tracts = pd.DataFrame(census_tracts[["OBJECTID", "orig_area"]])
 
     crime_data = pd.read_csv("data/boston_crime.csv")
+    crime_data = crime_data.dropna(subset=['Long'])
     crs = {"init": "epsg:4326"}
     crime_data = gpd.GeoDataFrame(
         crime_data,
@@ -51,6 +52,7 @@ def main():
     ]
     bins_to_crime = gpd.sjoin(bin_data, crime_data, op="contains")
     bins_to_crime["centroid"] = bins_to_crime.centroid
+    # TODO this line gives me an error? -dain
     bins_to_crime.to_csv("crimes_in_bins.csv")
 
 
