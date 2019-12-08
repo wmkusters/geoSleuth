@@ -8,9 +8,8 @@ def main():
     binned_crimes = pd.read_csv("crimes_in_bins.csv")
     calculator = DiscreteCalc(feature_df, binned_crimes, feature_name="Liquor")
     subgroups = ["Violent Crime", "Theft Crime"]
-    def avg(a_list):
-        return sum(a_list)/len(a_list)
     results = calculator.calculation(subgroups, group=True, to_file=True)
+
 
 if __name__ == "__main__":
     main()
