@@ -56,7 +56,7 @@ class DistCalc(BaseCalc):
     bins to distances away from certain features
     """
 
-    def __init__(self, feature_df, binned_crime_df):
+    def __init__(self, feature_df, binned_crime_df, feature_name):
         """
         parameters:
             feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
@@ -67,7 +67,7 @@ class DistCalc(BaseCalc):
         Pandas dataframes are used as data is read from a .csv, not from a .shp, so no
         geometry column is set.
         """
-        BaseCalc.__init__(self, feature_df, binned_crime_df)
+        BaseCalc.__init__(self, feature_df, binned_crime_df, feature_name)
 
     def calculation(
         self, subgroup_list, feature_function=min, group=False, to_file=False
@@ -131,14 +131,26 @@ class DistCalc(BaseCalc):
             lambda row: bin_distances[row["bin_id"]], axis=1
         )
 
-        # Return results filtered for each subgroup of crime
-        results = []
+        feat_result_df = self.binned_crime_df
+        # Filter by subgroup, return filtered results
+        results = {}
         for subgroup in subgroup_list:
-            crimes = subgroups[subgroup]
-            filtered_df = self.binned_crime_df[
-                self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
+            crimes = subgroups[subgroup]  # Add try catch for not using correct data
+            subgroup_df = feat_result_df[
+                feat_result_df["OFFENSE_CODE_GROUP"].isin(crimes)
             ]
-            results.append(filtered_df)
+
+            # If group=True, group the subgroup dataframe into bin_ids and
+            # the relevant columns
+            if group:
+                grouped_df = self.grouper(subgroup_df)
+                results[subgroup] = grouped_df
+            else:
+                results[subgroup] = subgroup_df
+
+        if to_file:
+            self.write_results(results)
+
         return results
 
 

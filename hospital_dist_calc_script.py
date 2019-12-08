@@ -4,16 +4,12 @@ import geopandas as gpd
 
 
 def main():
-    feature_df = pd.read_csv("data/hospital_locations_clean.csv")
+    feature_df = pd.read_csv("data/hospital_localtions_clean.csv")
     binned_crimes = pd.read_csv("crimes_in_bins.csv")
-    calculator = DistCalc(feature_df, binned_crimes)
+    calculator = DistCalc(feature_df, binned_crimes, feature_name="Hospital")
     subgroups = ["Violent Crime", "Theft Crime"]
-    results = calculator.calculation(subgroups, feature_function=min)
-    for result, subgroup in zip(results, subgroups):
-        # print(result[["bin_id", "OBJECTID", "OCCURRED_ON_DATE", "OFFENSE_CODE_GROUP", "crime_point"]].head())
-        result.to_csv(
-            "Hospital_Results/" + subgroup.replace(" ", "") + "_min.csv"
-        )
+    results = calculator.calculation(subgroups, feature_function=min, group=True, to_file=True)
+    
 
 
 if __name__ == "__main__":
