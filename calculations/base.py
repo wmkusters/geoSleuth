@@ -8,6 +8,7 @@ from geopandas import GeoSeries
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely import wkt as wkt
 from vars.subgroupings import subgroups
+from vars.adj_map import bin_adjacency_map as adj_map
 import os
 
 
@@ -151,7 +152,7 @@ class DistCalc(BaseCalc):
         self.binned_crime_df["feature"] = self.binned_crime_df.apply(
             lambda row: bin_distances[row["bin_id"]], axis=1
         )
-        
+
         return self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
 
 
@@ -175,7 +176,40 @@ class DiscreteCalc(BaseCalc):
         """
         BaseCalc.__init__(self, feature_df, binned_crime_df, feature_name)
 
-    def calculation(self, subgroup_list, convolve=False, group=False, to_file=False):
+    def convolve(self, dataframe, func):
+        """
+        parameters: 
+            convolution: the operation to be applied during convolution, i.e.
+                         averaging
+        returns: 
+            the same dataframe with the feature values recomputed
+            by the convolution
+
+        Recompute bin feature values via a convolution filter. Uses a constant
+        dict provided in the library mapping a bin_id to the ids of adjacent
+        bins for faster computation of the convolution.
+        """
+        adj_feats = {}
+        new_vals = {}
+        for bin_id in pd.unique(dataframe.bin_id):
+            print(adj_map[bin_id])
+            print(dataframe.loc[dataframe["bin_id"].isin(adj_map[bin_id])][["feature"]])
+            raise SystemError(0)
+            new_vals[bin_id] = dataframe.loc[dataframe["bin_id"].isin(adj_map[bin_id])][
+                ["feature"]
+            ].mean()
+        print(new_vals)
+        raise SystemError(0)
+        return dataframe
+
+    def calculation(
+        self,
+        subgroup_list,
+        convolve=False,
+        convolve_func=None,
+        group=False,
+        to_file=False,
+    ):
         """
         parameters:
             subgroup_list: list of subgroups to return data for
@@ -188,6 +222,9 @@ class DiscreteCalc(BaseCalc):
         end of binned crime dataframe labeled "feature" which stores the value
         for the calculated feature for that row's bin, the same as DistCalc.
         """
+        if convolve:
+            assert convolve_func is not None
+
         # Compose gdf with just unique bins and their geometries for joining
         bins = (
             self.binned_crime_df.groupby("bin_id")["geometry"]
@@ -211,6 +248,16 @@ class DiscreteCalc(BaseCalc):
                 feature_col = col
         feature_calculation = feature_calculation.rename(
             columns={feature_col: "feature"}
+        )[["bin_id", "feature"]]
+
+        # Append remaining bins with a feature value of 0
+        nonzero_bins = set(pd.unique(feature_calculation.bin_id))
+        all_bins = set(pd.unique(bins.bin_id))
+        zero_bins = all_bins - nonzero_bins
+        zeros = [0] * len(zero_bins)
+        zero_dict = {"bin_id": list(zero_bins), "feature": zeros}
+        feature_calculation = pd.concat(
+            [feature_calculation, pd.DataFrame.from_dict(zero_dict)]
         )
 
         # Join the features onto the original binned crime dataframe
@@ -221,9 +268,12 @@ class DiscreteCalc(BaseCalc):
         )
 
         if convolve:
-            final = self.finalize(feat_result_df, subgroup_list, group, to_file)
-            final = self.convolve(final)
+            results = self.finalize(feat_result_df, subgroup_list, group, to_file)
+            for subgroup in results.keys():
+                results[subgroup] = self.convolve(results[subgroup], convolve_func)
+            print(results["Violent Crime"].head())
+            raise SystemError(0)
         else:
-            final = self.finalize(feat_result_df, subgroup_list, group, to_file)
-            
-        return final
+            results = self.finalize(feat_result_df, subgroup_list, group, to_file)
+
+        return results
