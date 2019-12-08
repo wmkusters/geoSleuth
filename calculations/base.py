@@ -49,6 +49,27 @@ class BaseCalc:
                 result_dir + subgroup.replace(" ", "") + ".csv"
             )
 
+    def finalize(self, feat_result_df, subgroup_list, group, to_file):
+        results = {}
+        for subgroup in subgroup_list:
+            crimes = subgroups[subgroup]  # Add try catch for not using correct data
+            subgroup_df = feat_result_df[
+                feat_result_df["OFFENSE_CODE_GROUP"].isin(crimes)
+            ]
+
+            # If group=True, group the subgroup dataframe into bin_ids and
+            # the relevant columns
+            if group:
+                grouped_df = self.grouper(subgroup_df)
+                results[subgroup] = grouped_df
+            else:
+                results[subgroup] = subgroup_df
+
+        if to_file:
+            self.write_results(results)
+
+        return results
+
 
 class DistCalc(BaseCalc):
     """
@@ -130,28 +151,8 @@ class DistCalc(BaseCalc):
         self.binned_crime_df["feature"] = self.binned_crime_df.apply(
             lambda row: bin_distances[row["bin_id"]], axis=1
         )
-
-        feat_result_df = self.binned_crime_df
-        # Filter by subgroup, return filtered results
-        results = {}
-        for subgroup in subgroup_list:
-            crimes = subgroups[subgroup]  # Add try catch for not using correct data
-            subgroup_df = feat_result_df[
-                feat_result_df["OFFENSE_CODE_GROUP"].isin(crimes)
-            ]
-
-            # If group=True, group the subgroup dataframe into bin_ids and
-            # the relevant columns
-            if group:
-                grouped_df = self.grouper(subgroup_df)
-                results[subgroup] = grouped_df
-            else:
-                results[subgroup] = subgroup_df
-
-        if to_file:
-            self.write_results(results)
-
-        return results
+        
+        return self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
 
 
 class DiscreteCalc(BaseCalc):
@@ -219,23 +220,10 @@ class DiscreteCalc(BaseCalc):
             on="bin_id",
         )
 
-        # Filter by subgroup, return filtered results
-        results = {}
-        for subgroup in subgroup_list:
-            crimes = subgroups[subgroup]  # Add try catch for not using correct data
-            subgroup_df = feat_result_df[
-                feat_result_df["OFFENSE_CODE_GROUP"].isin(crimes)
-            ]
-
-            # If group=True, group the subgroup dataframe into bin_ids and
-            # the relevant columns
-            if group:
-                grouped_df = self.grouper(subgroup_df)
-                results[subgroup] = grouped_df
-            else:
-                results[subgroup] = subgroup_df
-
-        if to_file:
-            self.write_results(results)
-
-        return results
+        if convolve:
+            final = self.finalize(feat_result_df, subgroup_list, group, to_file)
+            final = self.convolve(final)
+        else:
+            final = self.finalize(feat_result_df, subgroup_list, group, to_file)
+            
+        return final
