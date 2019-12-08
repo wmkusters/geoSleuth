@@ -8,15 +8,46 @@ from geopandas import GeoSeries
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely import wkt as wkt
 from vars.subgroupings import subgroups
+import os
 
 
 class BaseCalc:
-    def __init__(self, feature_df, binned_crime_df):
+    def __init__(self, feature_df, binned_crime_df, feature_name=None):
         self.feature_df = feature_df
         self.binned_crime_df = binned_crime_df
+        self.feature_name = feature_name
 
     def calculation():
         raise NotImplementedError("Calculations are implemented in specific class!")
+
+    def grouper(self, result_df):
+        """
+        parameters:
+            result_df: binned crime df with feature values calculated and appended
+        returns:
+            grouped
+
+        """
+        features = result_df.groupby("bin_id").first()["feature"]
+        crimes = result_df.groupby("bin_id").count()["feature"]
+        area_proportion = result_df.groupby("bin_id").first()["area_proportion"]
+        result_df = (
+            pd.merge(features, crimes, on="bin_id")
+            .reset_index()
+            .rename(columns={"feature_x": "feature", "feature_y": "num_crimes"})
+        )
+        result_df = pd.merge(result_df, area_proportion, on="bin_id")
+        return result_df
+
+    def write_results(self, result_dict):
+        assert self.feature_name is not None
+        result_dir = self.feature_name + "_Results/"
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+        for subgroup in result_dict.keys():
+            result_dict[subgroup].to_csv(
+                result_dir + subgroup.replace(" ", "") + ".csv"
+            )
 
 
 class DistCalc(BaseCalc):
@@ -38,7 +69,9 @@ class DistCalc(BaseCalc):
         """
         BaseCalc.__init__(self, feature_df, binned_crime_df)
 
-    def calculation(self, subgroup_list, feature_function=min):
+    def calculation(
+        self, subgroup_list, feature_function=min, group=False, to_file=False
+    ):
         """
         parameters:
             subgroup list: list of subgroups to independently calculate/return
@@ -116,7 +149,7 @@ class DiscreteCalc(BaseCalc):
     certain features within a bin
     """
 
-    def __init__(self, feature_df, binned_crime_df):
+    def __init__(self, feature_df, binned_crime_df, feature_name):
         """
         parameters:
             feature_df: preprocessed PANDAS (not geopandas) dataframe of a feature
@@ -127,9 +160,9 @@ class DiscreteCalc(BaseCalc):
         Pandas dataframes are used, as data is read from a .csv, not from a .shp, so no
         geometry column is set.
         """
-        BaseCalc.__init__(self, feature_df, binned_crime_df)
+        BaseCalc.__init__(self, feature_df, binned_crime_df, feature_name)
 
-    def calculation(self, subgroup_list):
+    def calculation(self, subgroup_list, convolve=False, group=False, to_file=False):
         """
         parameters:
             subgroup_list: list of subgroups to return data for
@@ -168,18 +201,29 @@ class DiscreteCalc(BaseCalc):
         )
 
         # Join the features onto the original binned crime dataframe
-        self.binned_crime_df = pd.merge(
+        feat_result_df = pd.merge(
             self.binned_crime_df,
             feature_calculation[["bin_id", "feature"]],
             on="bin_id",
         )
 
         # Filter by subgroup, return filtered results
-        results = []
+        results = {}
         for subgroup in subgroup_list:
-            crimes = subgroups[subgroup] # Add try catch for not using correct data
-            filtered_df = self.binned_crime_df[
-                self.binned_crime_df["OFFENSE_CODE_GROUP"].isin(crimes)
+            crimes = subgroups[subgroup]  # Add try catch for not using correct data
+            subgroup_df = feat_result_df[
+                feat_result_df["OFFENSE_CODE_GROUP"].isin(crimes)
             ]
-            results.append(filtered_df)
+
+            # If group=True, group the subgroup dataframe into bin_ids and
+            # the relevant columns
+            if group:
+                grouped_df = self.grouper(subgroup_df)
+                results[subgroup] = grouped_df
+            else:
+                results[subgroup] = subgroup_df
+
+        if to_file:
+            self.write_results(results)
+
         return results
