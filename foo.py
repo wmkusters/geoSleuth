@@ -19,6 +19,7 @@ discrete_info = [
 ]
 
 for feature_name, filename, prep in discrete_info:
+	print(feature_name)
 	# Preprocess the data
 	start = time()
 	df = prep(filename)

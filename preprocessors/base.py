@@ -42,6 +42,7 @@ def preprocess_hospital(filename):
 def preprocess_liquor(filename):
     liquor_data = pd.read_csv(filename)
     crs = {"init": "epsg:4326"}
+    liquor_data = liquor_data.dropna(subset=['Location'])
     liquor_data["geometry"] = liquor_data.Location.apply(wkt_pt_conversion)
     liquor_data = liquor_data.dropna(subset=["geometry"])
     liquor_data = gpd.GeoDataFrame(liquor_data, crs=crs, geometry=liquor_data.geometry)
@@ -51,6 +52,7 @@ def preprocess_liquor(filename):
 def preprocess_entertainment(filename):
     entertainment_data = pd.read_csv(filename)
     crs = {"init": "epsg:4326"}
+    entertainment_data = entertainment_data.dropna(subset=['Location'])
     entertainment_data["geometry"] = entertainment_data.Location.apply(wkt_pt_conversion)
     entertainment_data = entertainment_data.dropna(subset=["geometry"])
     entertainment_data = gpd.GeoDataFrame(entertainment_data, crs=crs, geometry=entertainment_data.geometry)
