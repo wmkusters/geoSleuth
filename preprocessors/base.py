@@ -103,6 +103,38 @@ def preprocess_traffic_signal(filename):
     traffic_signal_data = traffic_signal_data.dropna()
     return traffic_signal_data
 
+def preprocess_charging_stations(filename):
+    pass
+
+
+def preprocess_colleges(filename):
+    pass
+
+
+def preprocess_pools(filename):
+    pass
+
+
+def preprocess_community_centers(filename):
+    pass
+
+
+def preprocess_public_schools(filename):
+    pass
+
+
+def preprocess_private_schools(filename):
+    pass
+
+
+def preprocess_trees(filename):
+    pass
+
+
+def preprocess_police_stations(filename):
+    pass
+
+
 
 if __name__ == "__main__":
     df = preprocess_liquor("data/liquor-licenses.csv")
