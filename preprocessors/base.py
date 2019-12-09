@@ -45,32 +45,28 @@ def preprocess_liquor(filename):
     liquor_data["geometry"] = liquor_data.Location.apply(wkt_pt_conversion)
     liquor_data = liquor_data.dropna(subset=["geometry"])
     liquor_data = gpd.GeoDataFrame(liquor_data, crs=crs, geometry=liquor_data.geometry)
-    return liquor_data[["LICENSENO", "geometry"]]
+    return liquor_data
 
 
 def preprocess_entertainment(filename):
-    entertainment_data = gpd.read_file(filename)
+    entertainment_data = pd.read_csv(filename)
     crs = {"init": "epsg:4326"}
-    entertainment_data["Long"] = entertainment_data["Long"].astype(float)
-    entertainment_data["Lat"] = entertainment_data["Lat"].astype(float)
-    entertainment_geometry = [
-        Point(xy) for xy in zip(entertainment_data["Long"], entertainment_data["Lat"])
-    ]
-    entertainment_data = gpd.GeoDataFrame(
-        entertainment_data, crs=crs, geometry=entertainment_geometry
-    )
-    entertainment_data = entertainment_data.dropna()
+    entertainment_data["geometry"] = entertainment_data.Location.apply(wkt_pt_conversion)
+    entertainment_data = entertainment_data.dropna(subset=["geometry"])
+    entertainment_data = gpd.GeoDataFrame(entertainment_data, crs=crs, geometry=entertainment_data.geometry)
     return entertainment_data
 
 
 def preprocess_mbta(filename):
-    mbta_data = gpd.read_file(filename)
+    mbta_data = pd.read_csv(filename)
     crs = {"init": "epsg:4326"}
     mbta_data["Long"] = mbta_data["X"].astype(float)
     mbta_data["Lat"] = mbta_data["Y"].astype(float)
-    mbta_geometry = [Point(xy) for xy in zip(mbta_data["Long"], mbta_data["Lat"])]
+    mbta_geometry = [
+        Point(xy) for xy in zip(mbta_data["Long"], mbta_data["Lat"])
+    ]
     mbta_data = gpd.GeoDataFrame(mbta_data, crs=crs, geometry=mbta_geometry)
-    mbta_data = mbta_data.dropna()
+    mbta_data = mbta_data.dropna(subset=["geometry"])
     return mbta_data
 
 
@@ -102,6 +98,7 @@ def preprocess_traffic_signal(filename):
     )
     traffic_signal_data = traffic_signal_data.dropna()
     return traffic_signal_data
+
 
 def preprocess_charging_stations(filename):
     charging_stations_data = gpd.read_file(filename)
@@ -209,12 +206,16 @@ def preprocess_trees(filename):
 
 
 def preprocess_police_stations(filename):
-    station_data = pd.read_csv(filename)
+    station_data = gpd.read_file(filename)
     crs = {"init": "epsg:4326"}
-    station_data["Long"] = station_data["X"].astype(float)
-    station_data["Lat"] = station_data["Y"].astype(float)
-    station_geometry = [Point(xy) for xy in zip(station_data["Long"], station_data["Lat"])]
-    station_data = gpd.GeoDataFrame(station_data, crs=crs, geometry=station_geometry)
+    station_data["Long"] = station_data.geometry.x
+    station_data["Lat"] = station_data.geometry.y
+    station_geometry = [
+        Point(xy) for xy in zip(station_data["Long"], station_data["Lat"])
+    ]
+    station_data = gpd.GeoDataFrame(
+        station_data, crs=crs, geometry=station_geometry
+    )
     station_data = station_data.dropna()
     return station_data
 
