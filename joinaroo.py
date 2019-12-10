@@ -52,7 +52,6 @@ def main():
     ]
     bins_to_crime = gpd.sjoin(bin_data, crime_data, op="contains")
     bins_to_crime["centroid"] = bins_to_crime.centroid
-    # TODO this line gives me an error? -dain
     bins_to_crime.to_csv("crimes_in_bins.csv")
 
 

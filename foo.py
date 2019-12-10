@@ -9,27 +9,27 @@ from time import time
 
 subgroups = ['Theft Crime', 'Violent Crime']
 
-# discrete_info = [
-# 		('Liquor', 'data/liquor-licenses.csv', preprocess_liquor),
-# 		('Entertainment', 'data/entertainment-licenses.csv', preprocess_entertainment),
-# 		('Traffic_Signals', 'data/Traffic_Signals/Traffic_Signals.shp', preprocess_traffic_signal),
-# 		('Streetlights', 'data/streetlight-locations.csv', preprocess_streetlight),
-# 		('MBTA_Stops', 'data/MBTA_Stops.csv', preprocess_mbta),
-# 		('Trees', 'data/Trees/Trees.shp', preprocess_trees),
-# ]
+discrete_info = [
+		('Liquor', 'data/liquor-licenses.csv', preprocess_liquor),
+		('Entertainment', 'data/entertainment-licenses.csv', preprocess_entertainment),
+		('Traffic_Signals', 'data/Traffic_Signals/Traffic_Signals.shp', preprocess_traffic_signal),
+		('Streetlights', 'data/streetlight-locations.csv', preprocess_streetlight),
+		('MBTA_Stops', 'data/MBTA_Stops.csv', preprocess_mbta),
+		('Trees', 'data/Trees/Trees.shp', preprocess_trees),
+]
 
-# for feature_name, filename, prep in discrete_info:
-# 	print(feature_name)
-# 	# Preprocess the data
-# 	start = time()
-# 	df = prep(filename)
-# 	binned_crimes = pd.read_csv('crimes_in_bins.csv')
+for feature_name, filename, prep in discrete_info:
+	print(feature_name)
+	# Preprocess the data
+	start = time()
+	df = prep(filename)
+	binned_crimes = pd.read_csv('crimes_in_bins.csv')
 
-# 	# Calculations
-# 	calculator = DiscreteCalc(df, binned_crimes, feature_name=feature_name)
-# 	results = calculator.calculation(subgroups, convolve=False, group=True, to_file=True)
-# 	end = time()
-# 	print('discrete calculations took {} seconds'.format(round(end-start, 2)))
+	# Calculations
+	calculator = DiscreteCalc(df, binned_crimes, feature_name=feature_name)
+	results = calculator.calculation(subgroups, convolve=False, group=True, to_file=True)
+	end = time()
+	print('discrete calculations took {} seconds'.format(round(end-start, 2)))
 
 
 distance_info = [
