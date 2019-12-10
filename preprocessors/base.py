@@ -10,7 +10,6 @@ class BaseProcessor:
         self.crs = {"init": "epsg:4326"}
         if filename.endswith('shp'):
             self.data = gpd.read_file(filename)
-            self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=self.data.geometry)
         elif filename.endswith('csv'):
             self.data = pd.read_csv(filename)
             # more processing happens in the child class (only relevant for csv)
@@ -18,7 +17,10 @@ class BaseProcessor:
             raise OSError("Processor only accepts .csv and .shp files")
 
     def process(self):
-        # drop na geometry
+        # cast as GeoDataFrame and drop empty geometry
+        # at this point, self.data should have a geometry column
+        # (either from original shp file or created in specific processor)
+        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=self.data.geometry)
         self.data = self.data[~(self.data.geometry.is_empty | self.data.geometry.isna())]
         return self.data
 
@@ -53,8 +55,7 @@ class HospitalProcessor(BaseProcessor):
         # dataset-specific processing
         self.data['Long'] = self.data.XCOORD.apply(lambda x: x / -10e5)
         self.data['Lat'] = self.data.YCOORD.apply(lambda y: y / 10e5)
-        geometry = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
-        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=geometry)
+        self.data['geometry'] = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
 
 
 class LiquorProcessor(BaseProcessor):
@@ -63,8 +64,7 @@ class LiquorProcessor(BaseProcessor):
 
         # dataset-specific processing
         self.data = self.data.dropna(subset=['Location'])
-        geometry = self.data.Location.apply(self.wkt_pt_conversion)
-        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=geometry)
+        self.data['geometry'] = self.data.Location.apply(self.wkt_pt_conversion)
 
 
 class EntertainmentProcessor(BaseProcessor):
@@ -73,8 +73,7 @@ class EntertainmentProcessor(BaseProcessor):
 
         # dataset-specific processing
         self.data = self.data.dropna(subset=['Location'])
-        geometry = self.data.Location.apply(self.wkt_pt_conversion)
-        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=geometry)
+        self.data['geometry'] = self.data.Location.apply(self.wkt_pt_conversion)
 
 
 class MbtaProcessor(BaseProcessor):
@@ -84,8 +83,7 @@ class MbtaProcessor(BaseProcessor):
         # dataset-specific processing
         self.data['Long'] = self.data["X"].astype(float)
         self.data['Lat'] = self.data["Y"].astype(float)
-        geometry = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
-        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=geometry)
+        self.data['geometry'] = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
 
 
 class StreetlightProcessor(BaseProcessor):
@@ -95,6 +93,5 @@ class StreetlightProcessor(BaseProcessor):
         # dataset-specific processing
         self.data["Long"] = self.data["Long"].astype(float)
         self.data["Lat"] = self.data["Lat"].astype(float)
-        geometry = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
-        self.data = gpd.GeoDataFrame(self.data, crs=self.crs, geometry=geometry)
+        self.data['geometry'] = [Point(xy) for xy in zip(self.data['Long'], self.data['Lat'])]
 

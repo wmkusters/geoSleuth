@@ -19,7 +19,7 @@ class BaseAnalyzer:
     Top level analyzer, used for inheritance.
     """
 
-    def __init__(self, dataframe):
+    def __init__(self, dataframe, feature_name=None):
         """
         parameters:
             dataframe: pandas dataframe to analyze. must contain 'bin_id', 'feature', 'num_crimes'
@@ -41,8 +41,6 @@ class BaseAnalyzer:
         self.train, self.test = train_test_split(
             self.result_df, random_state=42
         )
-        # train = train.sort_values('feature')
-        # test = test.sort_values('feature')
         self.train_x = np.array(self.train["feature"]).reshape(-1, 1)
         self.train_y = np.array(self.train["num_crimes"])
         self.test_x = np.array(self.test["feature"]).reshape(-1, 1)
@@ -57,6 +55,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Linear', y_pred, r2)
+        return r2
 
     def quadratic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(2), LinearRegression())
@@ -67,6 +66,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Quadratic', y_pred, r2)
+        return r2
 
     def cubic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(3), LinearRegression())
@@ -77,6 +77,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Cubic', y_pred, r2)
+        return r2
 
     def quartic_model(self, plot=False):
         model = make_pipeline(PolynomialFeatures(4), LinearRegression())
@@ -87,6 +88,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Quartic', y_pred, r2)
+        return r2
 
     def gaussian_model(self, plot=False):
         kernel = DotProduct() + WhiteKernel()
@@ -98,6 +100,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Gaussian', y_pred, r2)
+        return r2
 
     def random_forest_model(self, plot=False):
         model = RandomForestRegressor(n_estimators=100, max_depth=None, random_state=42)
@@ -108,6 +111,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('Random Forest', y_pred, r2)
+        return r2
 
     def xgboost_model(self, plot=False):
         model = xgb.XGBRegressor(
@@ -125,6 +129,7 @@ class BaseAnalyzer:
 
         if plot:
             self.plot_result('XGBoost', y_pred, r2)
+        return r2
 
     def plot_result(self, model, y_pred, r2):
         # TODO show predictions for all x, not just test
@@ -133,49 +138,56 @@ class BaseAnalyzer:
         plt.title('{} Regression Prediction (R^2: {})'.format(model, str(round(r2, 2))))
         plt.show()
 
-    # TODO write a method for running all models and saving to csv
+    # method for running all models
+    def run_models(self, models=['linear','quadratic','cubic','quartic','gaussian','random_forest','xgboost'], plot=False):
+        result_dict = {}
+        for m in models:
+            r2 = eval('self.{}_model(plot={})'.format(m, plot))
+            result_dict[m] = r2
+        return result_dict
+
+
+    # def write_results(self, result_dict):
+    #     assert self.feature_name is not None
+    #     result_dir = self.feature_name + '_Analysis_Results.csv'
+
+    #     for subgroup in result_dict.keys():
+    #         result_dict[subgroup].to_csv(
+    #             result_dir + subgroup.replace(' ', '') + '.csv'
+    #         )
+
+    #     results_dict = {'Crime Group': crime_groupings_names,
+    #                   'Linear': linear_regression_results, 
+    #                   'Quadratic': quadratic_regression_results, 
+    #                   'Cubic': cubic_regression_results,
+    #                   'Quartic': quartic_regression_results, 
+    #                   'Gaussian': gaussian_regression_results, 
+    #                   'Random Forest': random_forest_regression_results, 
+    #                   'XGBoost': xgboost_regression_results} 
+
+    #     results_df = pd.DataFrame.from_dict(results_dict)
+    #     results_df.set_index('Crime Group')
+    #     results_df.to_csv('Analysis_Results/{}_Crime_Results.csv'.format(data_name))
+
 
 
 class DiscreteAnalyzer(BaseAnalyzer):
     """
     Analyzer for discrete features
     """
-    def __init__(self, result_df):
+    def __init__(self, result_df, average=False):
         BaseAnalyzer.__init__(self, result_df)
 
-        # average bins
-        # train_avg = self.train.groupby("feature")[["num_crimes"]].mean().reset_index()
-        # test_avg = self.test.groupby("feature")[["num_crimes"]].mean().reset_index()
+        if average:
+            # average bins to use for analysis
+            train_avg = self.train.groupby("feature")[["num_crimes"]].mean().reset_index()
+            test_avg = self.test.groupby("feature")[["num_crimes"]].mean().reset_index()
 
-        # # this overrides the generic train/test sets generated in BaseAnalyzer
-        # self.train_x = np.array(train_avg["feature"]).reshape(-1, 1)
-        # self.train_y = np.array(train_avg["num_crimes"])
-        # self.test_x = np.array(test_avg["feature"]).reshape(-1, 1)
-        # self.test_y = np.array(test_avg["num_crimes"])
-
-    # TODO deprecate
-    def convolve_bins(self, convolution):
-        """
-        parameters: 
-            convolution: the operation to be applied during convolution, i.e.
-                         averaging
-        returns: 
-            the same dataframe with the feature values recomputed
-            by the convolution
-
-        Recompute bin feature values via a convolution filter. Uses a constant
-        dict provided in the library mapping a bin_id to the ids of adjacent
-        bins for faster computation of the convolution.
-        """
-
-        # BASICALLY PSEUDOCODE RN
-        def pandas_convolution(dataframe):
-            adj_values = [dataframe.at[bin_id, feature] for bin_id in adj_dict[bin_id]]
-            if dataframe.at[bin_id, feature] > 0:
-                adj_values.append(dataframe.at[bin_id, feature])
-            dataframe.at[bin_id, feature] = func(adj_values)
-
-        raise NotImplementedError()
+            # this overrides the generic train/test sets generated in BaseAnalyzer
+            self.train_x = np.array(train_avg["feature"]).reshape(-1, 1)
+            self.train_y = np.array(train_avg["num_crimes"])
+            self.test_x = np.array(test_avg["feature"]).reshape(-1, 1)
+            self.test_y = np.array(test_avg["num_crimes"])
 
     def box_plotter(self):
         """
