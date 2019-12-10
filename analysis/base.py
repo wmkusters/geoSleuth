@@ -30,23 +30,23 @@ class BaseAnalyzer:
         self.result_df = dataframe
 
         # sanity check
-        assert self.result_df.columns.contains('bin_id')
-        assert self.result_df.columns.contains('feature')
-        assert self.result_df.columns.contains('num_crimes')
+        assert 'bin_id' in self.result_df.columns
+        assert 'feature' in self.result_df.columns
+        assert 'num_crimes' in self.result_df.columns
 
         # filter to bins with nonzero crimes
         self.result_df = self.result_df[self.result_df["num_crimes"] > 0]
 
         # split train/test
         self.train, self.test = train_test_split(
-            self.result_df, test_size=0.1, random_state=42
+            self.result_df, random_state=42
         )
         # train = train.sort_values('feature')
         # test = test.sort_values('feature')
-        self.train_x = np.array(train["feature"]).reshape(-1, 1)
-        self.train_y = np.array(train["num_crimes"])
-        self.test_x = np.array(test["feature"]).reshape(-1, 1)
-        self.test_y = np.array(test["num_crimes"])
+        self.train_x = np.array(self.train["feature"]).reshape(-1, 1)
+        self.train_y = np.array(self.train["num_crimes"])
+        self.test_x = np.array(self.test["feature"]).reshape(-1, 1)
+        self.test_y = np.array(self.test["num_crimes"])
 
     def linear_model(self, plot=False):
         model = LinearRegression()
@@ -127,10 +127,13 @@ class BaseAnalyzer:
             self.plot_result('XGBoost', y_pred, r2)
 
     def plot_result(self, model, y_pred, r2):
+        # TODO show predictions for all x, not just test
         plt.scatter(self.train_x, self.train_y)
         plt.scatter(self.test_x, y_pred, color='r')
         plt.title('{} Regression Prediction (R^2: {})'.format(model, str(round(r2, 2))))
         plt.show()
+
+    # TODO write a method for running all models and saving to csv
 
 
 class DiscreteAnalyzer(BaseAnalyzer):
@@ -150,6 +153,7 @@ class DiscreteAnalyzer(BaseAnalyzer):
         # self.test_x = np.array(test_avg["feature"]).reshape(-1, 1)
         # self.test_y = np.array(test_avg["num_crimes"])
 
+    # TODO deprecate
     def convolve_bins(self, convolution):
         """
         parameters: 

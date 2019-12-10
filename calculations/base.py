@@ -143,7 +143,6 @@ class DistCalc(BaseCalc):
             cent_coords = (cent_coords.x, cent_coords.y)
             distances = []
             for point in self.feature_df.geometry:
-                point = wkt.loads(point)
                 feat_coords = (point.x, point.y)
                 distances.append(haversine(cent_coords + feat_coords))
             bin_distances[bin_id] = feature_function(distances)
