@@ -42,7 +42,7 @@ class BaseCalc:
 
     def write_results(self, result_dict):
         assert self.feature_name is not None
-        result_dir = self.feature_name + "_Results/"
+        result_dir = "Results/" + self.feature_name + "_Results/"
         if not os.path.exists(result_dir):
             os.makedirs(result_dir)
         for subgroup in result_dict.keys():
@@ -143,7 +143,6 @@ class DistCalc(BaseCalc):
             cent_coords = (cent_coords.x, cent_coords.y)
             distances = []
             for point in self.feature_df.geometry:
-                point = wkt.loads(point)
                 feat_coords = (point.x, point.y)
                 distances.append(haversine(cent_coords + feat_coords))
             bin_distances[bin_id] = feature_function(distances)
