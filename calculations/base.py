@@ -202,6 +202,7 @@ class DiscreteCalc(BaseCalc):
         dataframe["feature"] = dataframe.apply(
             lambda row: new_vals[row["bin_id"]], axis=1
         )
+        dataframe = dataframe.dropna(subset=['feature'])
         return dataframe
 
     def calculation(
