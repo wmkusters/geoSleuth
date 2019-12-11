@@ -151,8 +151,11 @@ class DistCalc(BaseCalc):
         self.binned_crime_df["feature"] = self.binned_crime_df.apply(
             lambda row: bin_distances[row["bin_id"]], axis=1
         )
+        results = self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
+        for result in results.keys():
+            results[result]["norm_crimes"] = results[result]["num_crimes"] * results[result]["area_proportion"]
 
-        return self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
+        return results
 
 
 class DiscreteCalc(BaseCalc):
