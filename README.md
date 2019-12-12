@@ -35,4 +35,4 @@ geoSleuth requires these three things to be of any use: some constrained geospat
 Once this region assigned data table is created, geoSleuth is used to investigate the relationship of various other geospatial features (falling across the same region) with regards to the distribution of interest. In the first use case, the example was a spatial partioning of Boston, the distribution of crime incidents falling across these partitions, and a variety of features to be used for investigation.
 
 ## Demo
-To walk through a single case usage, run the bash file example.sh to start Jupyter Notebook for a walkthrough.
+To walk through a single case usage, run the bash file `example.sh` to start Jupyter Notebook for a walkthrough.
