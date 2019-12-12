@@ -8,17 +8,29 @@ geoSleuth makes heavy use of the full functionality of a number of wonderful oth
 
 ## Installation
 geoSleuth requires a number of Python libraries, with explicit imports enumerated here:
+
 `matplotlib`
+
 `pandas`
+
 `numpy`
+
 `geopandas`
+
 `shapely`
+
 `sklearn`
+
 `xgboost`
 
+
 In addition to these requirements, geopandas requires some more complicated packages:
+
 `fiona`
+
 `descartes`
+
 `rtree`
+
 
 Due to the fact that some of these modules depend on C libraries, a Conda install is recommended for `geopandas`. Full installation documentation for `geopandas` is linked [here](https://geopandas.readthedocs.io/en/latest/install.html).
