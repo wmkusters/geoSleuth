@@ -131,6 +131,15 @@ class BaseAnalyzer:
         return r2
 
     def plot_result(self, model, y_pred, r2):
+        """
+        params:
+            model:
+            y_pred:
+            r2:
+        returns:
+
+        Plots the results of a model run.
+        """
         # TODO show predictions for all x, not just test
         plt.scatter(self.train_x, self.train_y)
         plt.scatter(self.test_x, y_pred, color="r")
@@ -152,6 +161,7 @@ class BaseAnalyzer:
             "histogram": self.feat_histogram_plot,
             "scatter": self.scatter_plot,
             "agg": self.agg_plot,
+            "box": self.box_plot,
         }
 
         assert plot_type in plot_dict.keys(), (
@@ -161,14 +171,15 @@ class BaseAnalyzer:
         return plot_dict[plot_type](kwargs)
 
     def feat_histogram_plot(self, param_dict):
-        # bin_ranges = param_dict["bin_ranges"]
-
         if "bins" in param_dict:
             self.result_df.hist(bins=param_dict["bins"])
             plt.show()
         else:
             self.result_df.hist()
             plt.show()
+
+    def box_plot(self):
+        raise NotImplementedError("Box plots implemented in DiscreteAnalyzer!")
 
     def agg_plot(self, param_dict):
         """
@@ -205,13 +216,22 @@ class BaseAnalyzer:
 
     def scatter_plot(self, param_dict):
         """
+        params:
+            param_dict: kwargs passed in from plot_raw.
+                        Must include a column for x and y.
+        returns:
+            Pyplot object with a scatter plot of
+            the desired features.
         """
-        plt.scatter(
-            self.result_df.feature, self.result_df.num_crimes, alpha=0.75, c="b"
+        assert "x_var" in param_dict and "y_var" in param_dict, (
+            "Missing x_var or y_var setting for scatter plot! Choices "
+            "for x and y of this dataframe include: "
+            + str(list(self.result_df.columns))
         )
-        plt.xlabel(self.feature_name)
-        plt.ylabel("Num Crimes in Bin")
-        plt.show()
+        plt.scatter(
+            self.result_df[param_dict["x_var"]], self.result_df[param_dict["y_var"]], alpha=.75
+        )
+        return plt
 
     # method for running all models
     def run_models(
@@ -258,7 +278,8 @@ class BaseAnalyzer:
 
 class DiscreteAnalyzer(BaseAnalyzer):
     """
-    Analyzer for discrete features
+    Analyzer for discrete features. Inherits from
+    BaseAnalyzer, adds a box plotter.
     """
 
     def __init__(self, result_df, average=False):
