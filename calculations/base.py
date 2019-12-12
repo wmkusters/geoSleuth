@@ -42,7 +42,7 @@ class BaseCalc:
 
     def write_results(self, result_dict):
         assert self.feature_name is not None
-        result_dir = self.feature_name + "_Results/"
+        result_dir = "Results/" + self.feature_name + "_Results/"
         if not os.path.exists(result_dir):
             os.makedirs(result_dir)
         for subgroup in result_dict.keys():
@@ -151,8 +151,11 @@ class DistCalc(BaseCalc):
         self.binned_crime_df["feature"] = self.binned_crime_df.apply(
             lambda row: bin_distances[row["bin_id"]], axis=1
         )
+        results = self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
+        for result in results.keys():
+            results[result]["norm_crimes"] = results[result]["num_crimes"] * results[result]["area_proportion"]
 
-        return self.finalize(self.binned_crime_df, subgroup_list, group, to_file)
+        return results
 
 
 class DiscreteCalc(BaseCalc):
