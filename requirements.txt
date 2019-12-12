@@ -1,1 +1,11 @@
 rtree
+matplotlib
+pandas
+numpy
+geopandas
+shapely
+xgboost
+sklearn
+fiona
+pyproj
+descartes
