@@ -28,3 +28,6 @@ In addition to these requirements, geopandas requires some more complicated pack
 
 
 Due to the fact that some of these modules depend on C libraries, a Conda install is recommended for `geopandas`. Full installation documentation for `geopandas` is linked [here](https://geopandas.readthedocs.io/en/latest/install.html).
+
+## Usage
+geoSleuth requires these three things to be of any use: some constrained geospatial area divided into subregions and able to read into a `GeoDataFrame`, a dataset of interest that falls geospatially over this constrained area, and a feature dataset. All three of these items should be able to be represented as `GeoDataFrames` in that they need to have some `geometry` column that has a value for every row. The distribution dataset is spatially joined to the region dataset conditioned on a subregion containing some point in the distribution, resulting in a `GeoDataFrame` with every point of the distribution of interest joined to the subregion it falls within. This computation is expected to be expensive, and as such is done before any calculation or analysis and is intended to be run once and saved, to be read back into a `GeoDataFrame` while the library is being used.
